@@ -1,0 +1,33 @@
+{
+  "name": "threejsTest",
+  "description": "threejs test",
+  "version": "0.0.1",
+  "author": {
+    "name": "Romain CAUQUIL",
+    "email": "romaincauquilrc@gmail.com"
+  },
+  "dependencies": {
+    "bower": "~1.3.12",
+    "express": "~4.10.4",
+    "gulp": "^3.8.x"
+  },
+  "engines": {
+    "node": "~0.10"
+  },
+  "devDependencies": {
+    "csswring": "^3.0.1",
+    "del": "^1.1.0",
+    "gulp-concat": "^2.5.0",
+    "gulp-connect": "^2.2.0",
+    "gulp-ignore": "^1.2.0",
+    "gulp-jscs": "^1.1.0",
+    "gulp-jshint": "^1.9.2",
+    "gulp-less": "^3.0.0",
+    "gulp-minify-html": "^0.1.8",
+    "gulp-postcss": "^4.0.3",
+    "gulp-sourcemaps": "^1.2.8",
+    "gulp-uglify": "^1.1.0",
+    "gulp-util": "^3.0.x",
+    "jshint-stylish": "^1.0.0"
+  }
+}
