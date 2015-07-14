@@ -6,6 +6,7 @@ var controls;
 var material, materialf3;
 var ambientLight, directionalLight;
 var cube;
+var camMode = "normal";
 
 
 // ------------------------------------------
@@ -117,10 +118,19 @@ function init() {
 // ------------------------------------------
 // RESIZE SCREEN
 // ------------------------------------------
-function onWindowResize() {
+function setWindowSize() {
   camera.aspect = window.innerWidth / window.innerHeight;
+  switch(camMode) {
+    case "nomal":
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      break;
+    case "vr":
+      effect.setSize(window.innerWidth, window.innerHeight);
+      break;
+    default:
+      renderer.setSize(window.innerWidth, window.innerHeight);
+  }
   camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
 
@@ -139,16 +149,42 @@ function animate() {
   requestAnimationFrame(animate);
   rotateZ(cube);
   controls.update();
-  render();
+  render(camMode);
 }
 
 
 // ------------------------------------------
 // RENDER
 // ------------------------------------------
-function render() {
-  //effect.render(scene, camera);
-  renderer.render(scene, camera);
+
+// CHANGE VIEW on keydown
+document.addEventListener('keydown', onDocumentKeyDown, false);
+function onDocumentKeyDown() {
+  switch (event.keyCode) {
+    case 78:
+      camMode = "normal";
+      break;
+    case 83:
+      camMode = "vr";
+      break;
+    default:
+      camMode = camMode;
+  }
+}
+
+// RENDER
+function render(mode) {
+  switch(camMode) {
+    case "nomal":
+      renderer.render(scene, camera);
+      break;
+    case "vr":
+      effect.render(scene, camera);
+      break;
+    default:
+      renderer.render(scene, camera);
+  }
+  setWindowSize();
 }
 
 
@@ -156,7 +192,7 @@ function render() {
 // LAUNCH
 // ------------------------------------------
 init();
-render();
+render(camMode);
 animate();
 
 
