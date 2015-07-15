@@ -36,7 +36,6 @@ function init() {
   // STEREOSCOPIC
   // ---------------------
   effect = new THREE.StereoEffect(renderer);
-  effect.setSize(window.innerWidth, window.innerHeight);
 
   // LIGHTS
   // ---------------------
@@ -110,8 +109,6 @@ function init() {
   controls.target.set(0,0,0);
   controls.noPan = true;
   controls.noZoom = false;
-
-
 }
 
 
