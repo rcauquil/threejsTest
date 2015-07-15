@@ -6,8 +6,24 @@ var controls;
 var material, materialf3;
 var ambientLight, directionalLight;
 var cube;
-var camMode = "normal";
+var setView = {
+  vrMode: false
+};
 
+// ------------------------------------------
+// CONTROL VIEW
+// ------------------------------------------
+var ctrlView = {
+  rotation: 0.01
+};
+
+window.onload = function() {
+  var gui = new dat.GUI();
+  // Speed rotation
+  gui.add(ctrlView, 'rotation').min(-0.1).max(0.1).step(0.01);
+  // View
+  gui.add(setView, 'vrMode');
+};
 
 // ------------------------------------------
 // INIT
@@ -117,11 +133,11 @@ function init() {
 // ------------------------------------------
 function setWindowSize() {
   camera.aspect = window.innerWidth / window.innerHeight;
-  switch(camMode) {
-    case "nomal":
+  switch(setView.vrMode) {
+    case false:
       renderer.setSize(window.innerWidth, window.innerHeight);
       break;
-    case "vr":
+    case true:
       effect.setSize(window.innerWidth, window.innerHeight);
       break;
     default:
@@ -136,17 +152,38 @@ function setWindowSize() {
 // ------------------------------------------
 
 // ROTATE
-function rotateZ(elem) {
-  elem.rotation.z += 0.01;
+function rotateZ(elem, speed) {
+  elem.rotation.z += speed;
+}
+
+// Move
+document.addEventListener('keydown', moveObject, false);
+function moveObject() {
+  switch (event.keyCode) {
+    case 38:
+      cube.position.y += 0.6;
+      break;
+    case 40:
+      cube.position.y -= 0.6;
+      break;
+    case 37:
+      cube.position.x -= 0.6;
+      break;
+    case 39:
+      cube.position.x += 0.6;
+      break;
+    default:
+      break;
+  }
 }
 
 // ANIMATE ALL
 // ----------------
 function animate() {
   requestAnimationFrame(animate);
-  rotateZ(cube);
+  rotateZ(cube, ctrlView.rotation);
   controls.update();
-  render(camMode);
+  render(setView.vrMode);
 }
 
 
@@ -155,27 +192,27 @@ function animate() {
 // ------------------------------------------
 
 // CHANGE VIEW on keydown
-document.addEventListener('keydown', onDocumentKeyDown, false);
-function onDocumentKeyDown() {
+document.addEventListener('keydown', changeView, false);
+function changeView() {
   switch (event.keyCode) {
     case 78:
-      camMode = "normal";
+      setView.vrMode = false;
       break;
     case 83:
-      camMode = "vr";
+      setView.vrMode = true;
       break;
     default:
-      camMode = camMode;
+      setView.vrMode = setView.vrMode;
   }
 }
 
 // RENDER
 function render(mode) {
-  switch(camMode) {
-    case "nomal":
+  switch(setView.vrMode) {
+    case false:
       renderer.render(scene, camera);
       break;
-    case "vr":
+    case true:
       effect.render(scene, camera);
       break;
     default:
@@ -189,7 +226,7 @@ function render(mode) {
 // LAUNCH
 // ------------------------------------------
 init();
-render(camMode);
+render(setView.vrMode);
 animate();
 
 
