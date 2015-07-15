@@ -35,7 +35,6 @@ function init() {
   // CAMERA
   // ---------------------
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.rotation.x = 0.2;
   camera.position.y = -15;
   camera.position.z = 20;
   scene.add(camera);
@@ -125,6 +124,10 @@ function init() {
   controls.target.set(0,0,0);
   controls.noPan = true;
   controls.noZoom = false;
+  controls.minPolarAngle = 300 * Math.PI / 360;
+  controls.maxPolarAngle = 340 * Math.PI / 360;
+  controls.minAzimuthAngle = 0;
+  controls.maxAzimuthAngle = 0;
 }
 
 
@@ -161,16 +164,16 @@ document.addEventListener('keydown', moveObject, false);
 function moveObject() {
   switch (event.keyCode) {
     case 38:
-      cube.position.y += 0.6;
+      cube.translateY(5);
       break;
     case 40:
-      cube.position.y -= 0.6;
+      cube.translateY(-5);
       break;
     case 37:
-      cube.position.x -= 0.6;
+      cube.translateX(-5);
       break;
     case 39:
-      cube.position.x += 0.6;
+      cube.translateX(5);
       break;
     default:
       break;

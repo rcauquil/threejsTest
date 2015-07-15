@@ -35,7 +35,7 @@ var paths = {
   images: ['src/assets/images/**/*'],
   libs: [
     'bower_components/threejs/build/three.js',
-    //'bower_components/threejs/examples/js/libs/dat.gui.min.js',
+    'bower_components/threejs/examples/js/libs/dat.gui.min.js',
     'bower_components/threejs/examples/js/effects/StereoEffect.js',
     'bower_components/threejs/examples/js/controls/OrbitControls.js'
   ]
