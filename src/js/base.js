@@ -11,19 +11,30 @@ var setView = {
 };
 
 // ------------------------------------------
+// KEYS
+// ------------------------------------------
+var keys = {};
+document.addEventListener('keydown',function(e){keys[e.keyCode]=true;},false);
+document.addEventListener('keyup',function(e){keys[e.keyCode]=false;},false);
+
+
+// ------------------------------------------
 // CONTROL VIEW
 // ------------------------------------------
-var ctrlView = {
-  rotation: 0.01
+var ctrlObj = {
+  rotation: 0.05,
+  speed: 0.6
 };
 
 window.onload = function() {
   var gui = new dat.GUI();
   // Speed rotation
-  gui.add(ctrlView, 'rotation').min(-0.1).max(0.1).step(0.01);
+  gui.add(ctrlObj, 'rotation').min(0).max(0.1).step(0.01);
+  gui.add(ctrlObj, 'speed').min(0).max(1).step(0.1);
   // View
   gui.add(setView, 'vrMode');
 };
+
 
 // ------------------------------------------
 // INIT
@@ -155,36 +166,26 @@ function setWindowSize() {
 // ------------------------------------------
 
 // ROTATE
-function rotateZ(elem, speed) {
-  elem.rotation.z += speed;
+function rotateObj(o,s,a,b) {
+  var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
+  o.rotation.z += n;
 }
 
-// Move
-document.addEventListener('keydown', moveObject, false);
-function moveObject() {
-  switch (event.keyCode) {
-    case 38:
-      cube.translateY(5);
-      break;
-    case 40:
-      cube.translateY(-5);
-      break;
-    case 37:
-      cube.translateX(-5);
-      break;
-    case 39:
-      cube.translateX(5);
-      break;
-    default:
-      break;
-  }
+// MOVE
+function moveObj(o,s,a,b) {
+  var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
+  o.translateY(n);
 }
+
 
 // ANIMATE ALL
 // ----------------
 function animate() {
   requestAnimationFrame(animate);
-  rotateZ(cube, ctrlView.rotation);
+
+  moveObj(cube, ctrlObj.speed, 38, 40);
+  rotateObj(cube, ctrlObj.rotation, 37, 39);
+
   controls.update();
   render(setView.vrMode);
 }
@@ -193,21 +194,6 @@ function animate() {
 // ------------------------------------------
 // RENDER
 // ------------------------------------------
-
-// CHANGE VIEW on keydown
-document.addEventListener('keydown', changeView, false);
-function changeView() {
-  switch (event.keyCode) {
-    case 78:
-      setView.vrMode = false;
-      break;
-    case 83:
-      setView.vrMode = true;
-      break;
-    default:
-      setView.vrMode = setView.vrMode;
-  }
-}
 
 // RENDER
 function render(mode) {
