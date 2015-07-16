@@ -46,8 +46,6 @@ function init() {
   // CAMERA
   // ---------------------
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.y = -15;
-  camera.position.z = 20;
   scene.add(camera);
 
   // RENDERER
@@ -127,18 +125,6 @@ function init() {
   var plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), new THREE.MeshNormalMaterial());
   plane.overdraw = true;
   scene.add(plane);
-
-  // CONTROLS
-  // ---------------------
-  controls = new THREE.OrbitControls(camera);
-  controls.addEventListener('change', render);
-  controls.target.set(0,0,0);
-  controls.noPan = true;
-  controls.noZoom = false;
-  controls.minPolarAngle = 300 * Math.PI / 360;
-  controls.maxPolarAngle = 340 * Math.PI / 360;
-  controls.minAzimuthAngle = 0;
-  controls.maxAzimuthAngle = 0;
 }
 
 
@@ -165,6 +151,14 @@ function setWindowSize() {
 // ANIMATE
 // ------------------------------------------
 
+// CAMERA
+function cameraPos(o,t) {
+  o.position.x = t.position.x;
+  o.position.y = t.position.y + -30;
+  camera.position.z = 35;
+  camera.lookAt(t.position);
+}
+
 // ROTATE
 function rotateObj(o,s,a,b) {
   var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
@@ -185,8 +179,8 @@ function animate() {
 
   moveObj(cube, ctrlObj.speed, 38, 40);
   rotateObj(cube, ctrlObj.rotation, 37, 39);
+  cameraPos(camera,cube);
 
-  controls.update();
   render(setView.vrMode);
 }
 
