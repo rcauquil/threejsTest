@@ -3,8 +3,6 @@ var gutil = require('gulp-util');
 var ignore = require('gulp-ignore');
 var del = require('del');
 
-var connect = require('gulp-connect');
-
 var minifyHTML = require('gulp-minify-html');
 
 var jshint = require('gulp-jshint');
@@ -25,14 +23,17 @@ var concat = require('gulp-concat');
 
 var paths = {
   scripts: [
-    'src/js/*.js'
+    'src/app/js/*.js'
+  ],
+  server: [
+    'src/server.js'
   ],
   styles: [
-    'src/style/**/*.less'
+    'src/app/style/**/*.less'
   ],
-  html: ['src/**/*.html'],
-  fonts: ['src/assets/fonts/*'],
-  images: ['src/assets/images/**/*'],
+  html: ['src/app/**/*.html'],
+  fonts: ['src/app/assets/fonts/*'],
+  images: ['src/app/assets/images/**/*'],
   libs: [
     'bower_components/threejs/build/three.js',
     'bower_components/threejs/examples/js/libs/dat.gui.min.js',
@@ -40,18 +41,6 @@ var paths = {
     'bower_components/threejs/examples/js/controls/OrbitControls.js'
   ]
 };
-
-
-// SERVER
-// -------------------------------------
-
-gulp.task('server', function () {
-  connect.server({
-    root: ['dist', 'path'],
-    port: 9000,
-    livereload: true
-  });
-});
 
 
 // LINT
@@ -73,8 +62,7 @@ gulp.task('jscs', function() {
 gulp.task('html', function() {
   return gulp.src(paths.html)
     .pipe(minifyHTML())
-    .pipe(gulp.dest('dist/'))
-    .pipe(connect.reload());
+    .pipe(gulp.dest('build/app/'));
 });
 
 
@@ -92,8 +80,17 @@ gulp.task('styles', function() {
       .pipe(concat('style.min.css'))
       .pipe(postcss(processors))
     .pipe(sourcemaps.write('../maps/'))
-    .pipe(gulp.dest('dist/css/'))
-    .pipe(connect.reload());
+    .pipe(gulp.dest('build/app/css/'));
+});
+
+
+// SERVER
+// -------------------------------------
+gulp.task('server', function() {
+  return gulp.src(paths.server)
+    .pipe(jshint())
+    .pipe(jshint.reporter('default'))
+    .pipe(gulp.dest('build/'));
 });
 
 
@@ -107,15 +104,14 @@ gulp.task('scripts', function() {
       .pipe(concat('main.min.js'))
       .pipe(uglify({mangle: false}))
     .pipe(sourcemaps.write('../maps/'))
-    .pipe(gulp.dest('dist/js/'))
-    .pipe(connect.reload());
+    .pipe(gulp.dest('build/app/js/'));
 });
 
 gulp.task('libs', function() {
   return gulp.src(paths.libs)
     .pipe(uglify({mangle: false}))
     .pipe(concat('libs.min.js'))
-    .pipe(gulp.dest('dist/js/'));
+    .pipe(gulp.dest('build/app/js/'));
 });
 
 
@@ -123,7 +119,7 @@ gulp.task('libs', function() {
 // -------------------------------------
 gulp.task('fonts', function() {
   return gulp.src(paths.fonts)
-    .pipe(gulp.dest('./dist/fonts/'));
+    .pipe(gulp.dest('./build/app/fonts/'));
 });
 
 
@@ -131,8 +127,7 @@ gulp.task('fonts', function() {
 // -------------------------------------
 gulp.task('images', function() {
   return gulp.src(paths.images)
-    .pipe(gulp.dest('./dist/img/'))
-    .pipe(connect.reload());
+    .pipe(gulp.dest('./build/app/img/'));
 });
 
 
@@ -140,6 +135,7 @@ gulp.task('images', function() {
 // -------------------------------------
 gulp.task('watch', function () {
   gulp.watch([paths.scripts], ['scripts']);
+  gulp.watch([paths.server], ['server']);
   gulp.watch([paths.styles], ['styles']);
   gulp.watch([paths.html], ['html']);
   gulp.watch([paths.images], ['images']);
@@ -149,7 +145,7 @@ gulp.task('watch', function () {
 // CLEAN
 // -------------------------------------
 gulp.task('clean', function () {
-  del(['dist/']);
+  del(['build/']);
 });
 
 
@@ -158,8 +154,7 @@ gulp.task('clean', function () {
 gulp.task('default', [
   'lint',
   'jscs',
-  'watch',
-  'server'
+  'watch'
 ]);
 
 gulp.task('build', [
@@ -167,6 +162,7 @@ gulp.task('build', [
   'jscs',
   'html',
   'styles',
+  'server',
   'scripts',
   'libs',
   'fonts',
