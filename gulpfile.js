@@ -35,6 +35,7 @@ var paths = {
   fonts: ['src/app/assets/fonts/*'],
   images: ['src/app/assets/images/**/*'],
   libs: [
+    'node_modules/socket.io-client/socket.io.js',
     'bower_components/threejs/build/three.js',
     'bower_components/threejs/examples/js/libs/dat.gui.min.js',
     'bower_components/threejs/examples/js/effects/StereoEffect.js',
