@@ -6,10 +6,9 @@ var socket = io();
 // THREEJS
 var scene, camera, renderer, effect;
 var controls;
-var materialf3;
 var ambientLight, directionalLight;
 var cube;
-var currentPlayer = false;
+var lastTime;
 var setView = {
   vrMode: false
 };
@@ -186,25 +185,25 @@ function Player() {
 
 function addPlayer(user) {
   if (socket.id !== user.name) {
-  // Players
-  players[user.name] = {
-    obj: new Player(),
-    name: socket.id,
-    position: {},
-    rotation: {}
-  };
-  players[user.name].obj = new Player();
-  players[user.name].obj.name = user;
-  // Init Position
-  players[user.name].obj.position.x = user.position.x;
-  players[user.name].obj.position.y = user.position.y;
-  players[user.name].obj.position.z = user.position.z;
-  // Init Rotation
-  players[user.name].obj.rotation.x = user.rotation._x;
-  players[user.name].obj.rotation.y = user.rotation._y;
-  players[user.name].obj.rotation.z = user.rotation._z;
-  // Add to scene
-  scene.add(players[user.name].obj);
+    // Players
+    players[user.name] = {
+      obj: new Player(),
+      name: socket.id,
+      position: {},
+      rotation: {}
+    };
+    players[user.name].obj = new Player();
+    players[user.name].obj.name = user;
+    // Init Position
+    players[user.name].obj.position.x = user.position.x;
+    players[user.name].obj.position.y = user.position.y;
+    players[user.name].obj.position.z = user.position.z;
+    // Init Rotation
+    players[user.name].obj.rotation.x = user.rotation._x;
+    players[user.name].obj.rotation.y = user.rotation._y;
+    players[user.name].obj.rotation.z = user.rotation._z;
+    // Add to scene
+    scene.add(players[user.name].obj);
   }
 }
 
@@ -265,6 +264,12 @@ socket.on('deletePlayer', function(id) {
 // ----------------
 function animate() {
   requestAnimationFrame(animate);
+
+  // Calculate the time delta for this frame.
+  var now = Date.now();
+  var deltaTime = (now - lastTime) / 1000;
+  lastTime = now;
+
   if (players[socket.id] !== undefined) {
     // Set current socket player obj position and rotation
     players[socket.id].position = players[socket.id].obj.position;
@@ -272,8 +277,8 @@ function animate() {
     // Send the position of the current socket player to all players
     socket.emit('sendPosition', players[socket.id]);
     // Control the current socket player
-    moveObj(players[socket.id].obj, ctrlObj.speed, 38, 40);
-    rotateObj(players[socket.id].obj, ctrlObj.rotation, 37, 39);
+    moveObj(players[socket.id].obj, 50 * deltaTime, 38, 40);
+    rotateObj(players[socket.id].obj, Math.PI * deltaTime, 37, 39);
     // Camera follow the current socket player
     cameraPos(camera, players[socket.id].obj);
   }
