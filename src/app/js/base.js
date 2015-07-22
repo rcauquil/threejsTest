@@ -49,11 +49,12 @@ var ctrlObj = {
 window.onload = function() {
   var gui = new dat.GUI();
   // Speed rotation
-  gui.add(ctrlObj, 'rotation').min(0).max(0.1).step(0.01);
-  gui.add(ctrlObj, 'speed').min(0).max(1).step(0.1);
+  //gui.add(ctrlObj, 'rotation').min(0).max(0.1).step(0.01);
+  //gui.add(ctrlObj, 'speed').min(0).max(1).step(0.1);
   // View
   gui.add(setView, 'vrMode');
 };
+
 
 // ------------------------------------------
 // INIT
@@ -211,7 +212,7 @@ socket.on('initPlayer', function(){
     position: new THREE.Vector3(0, 0, 2.5),
     rotation: new THREE.Vector3(0, 0, 0),
     lastPos: null,
-    sequences: [],
+    sequences: []
   };
   players[socket.id].obj.name = players[socket.id].name;
   players[socket.id].obj.position.copy(players[socket.id].position);
@@ -267,7 +268,7 @@ socket.on('deletePlayer', function(id) {
 });
 
 
-
+// --------------------------------------------
 // CONTROLS
 // --------------------------------------------
 
@@ -279,22 +280,7 @@ function cameraPos(o,t) {
   camera.lookAt(t.position);
 }
 
-// ROTATE
-function rotateObj(o,s,a,b) {
-  var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
-  o.rotation.z += n;
-}
-
-// MOVE
-function moveObj(o,s,a,b) {
-  var n = (keys[a] ? a : 0) + (keys[b] ? b : 0);
-  if (keys[a] || keys[b]) {
-    socket.emit('movePlayer', o.name, n);
-  }
-}
-
-
-
+// MOVING OBJ
 function movingObj(o,t,r,b,l) {
   // IF an arrow key is down
   if (keys[t] || keys[r] || keys[b] || keys[l]) {
@@ -317,7 +303,7 @@ function movingObj(o,t,r,b,l) {
 }
 
 
-
+// --------------------------------------------
 // POSITIONS OF USERS
 // --------------------------------------------
 
@@ -344,9 +330,9 @@ socket.on('setPosition', function(users) {
 });
 
 
-
+// --------------------------------------------
 // ANIMATE ALL
-// ----------------
+// --------------------------------------------
 function animate() {
   requestAnimationFrame(animate);
 

@@ -13,7 +13,7 @@ var USERS = {};
 // ------------------------------------------------------------
 io.on('connection', function(socket){
 
-
+  // ------------------------------
   // INIT GAME
   // ------------------------------
 
@@ -32,7 +32,8 @@ io.on('connection', function(socket){
   });
 
 
-  // SERVER LOOPS
+  // ------------------------------
+  // SERVER LOOP
   // ------------------------------
 
   // 1: GET the player intended action
@@ -48,9 +49,6 @@ io.on('connection', function(socket){
     USERS[name].position.x += posX;
     USERS[name].position.y += posY;
 
-    //USERS[name].lastPos.x = USERS[name].position.x - posX;
-    //USERS[name].lastPos.y = USERS[name].position.y - posY;
-
     // Sequences
     USERS[name].sequences.push(sequence);
     //console.log(name + " IS MOVING : " + USERS[name].sequences);
@@ -62,12 +60,9 @@ io.on('connection', function(socket){
   });
 
 
-
-  // Update de USERS obj with user inputs
-  socket.on('sendPosition', function(user) {
-    USERS[user.name] = user;
-  });
-
+  // ------------------------------
+  // UPDATE LOOP
+  // ------------------------------
   // Send to all players the positions of all users
   // at a 100ms time
   setInterval(function(){
@@ -75,8 +70,7 @@ io.on('connection', function(socket){
   }, 100);
 
 
-
-
+  // ------------------------------
   // CONNECTIONS
   // ------------------------------
 
@@ -92,9 +86,10 @@ io.on('connection', function(socket){
   });
 });
 
-// --------------------
+
+// ------------------------------------------------------------
 // SERVER
-// --------------------
+// ------------------------------------------------------------
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
