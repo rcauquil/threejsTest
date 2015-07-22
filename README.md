@@ -14,5 +14,5 @@ gulp build
 ## START
 Go to the project root folder and run
 ```
-gulp
+npm start
 ```

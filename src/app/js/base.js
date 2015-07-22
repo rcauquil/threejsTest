@@ -13,10 +13,8 @@ var setView = {
   vrMode: false
 };
 // PLAYERS
-var cPlayer;
-var oPlayers = {};
-var oPositions = {};
 var players = {};
+
 
 // ------------------------------------------
 // KEYS
@@ -24,6 +22,20 @@ var players = {};
 var keys = {};
 document.addEventListener('keydown',function(e){keys[e.keyCode]=true;},false);
 document.addEventListener('keyup',function(e){keys[e.keyCode]=false;},false);
+
+
+// ------------------------------------------
+// GENERATE UUID
+// ------------------------------------------
+function generateUUID() {
+  var d = new Date().getTime();
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = (d + Math.random()*16)%16 | 0;
+    d = Math.floor(d/16);
+    return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+  });
+  return uuid;
+}
 
 
 // ------------------------------------------
@@ -78,17 +90,6 @@ function init() {
   directionalLight.position.set(1, 1, 0.5).normalize();
   scene.add(directionalLight);
 
-  // GEOMETRIES
-  // ---------------------
-
-
-  // MATERIALS
-  // ---------------------
-  // SIMPLE f3
-  materialSimple = new THREE.MeshLambertMaterial({
-    map: THREE.ImageUtils.loadTexture('assets/02-box.jpg')
-  });
-
   // OBJECTS
   // ---------------------
   // PLANE
@@ -118,30 +119,11 @@ function setWindowSize() {
 
 
 // ------------------------------------------
-// ANIMATE
+// PLAYER
 // ------------------------------------------
 
-// CAMERA
-function cameraPos(o,t) {
-  o.position.x = t.position.x;
-  o.position.y = t.position.y + -30;
-  camera.position.z = 35;
-  camera.lookAt(t.position);
-}
-
-// ROTATE
-function rotateObj(o,s,a,b) {
-  var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
-  o.rotation.z += n;
-}
-
-// MOVE
-function moveObj(o,s,a,b) {
-  var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
-  o.translateY(n);
-}
-
-
+// CREATE a new player object
+// with map etc..
 function Player() {
   // GEOMETRY
   var geometry = new THREE.BoxGeometry(5, 5, 5);
@@ -178,86 +160,189 @@ function Player() {
   // PLAYER
   var player = new THREE.Mesh(geometry, material);
   player.overdraw = true;
-  player.position.z = 2.5;
 
   return player;
 }
 
+// CREATE a user instance
 function addPlayer(user) {
   if (socket.id !== user.name) {
-    // Players
+    // CREATE the player
     players[user.name] = {
       obj: new Player(),
-      name: socket.id,
-      position: {},
-      rotation: {}
+      name: user.name,
+      position: new THREE.Vector3(user.position.x, user.position.y, user.position.z),
+      rotation: new THREE.Vector3(user.rotation._x, user.rotation._y, user.rotation._z),
+      lastPos: null,
+      sequences: []
     };
-    players[user.name].obj = new Player();
-    players[user.name].obj.name = user;
-    // Init Position
-    players[user.name].obj.position.x = user.position.x;
-    players[user.name].obj.position.y = user.position.y;
-    players[user.name].obj.position.z = user.position.z;
-    // Init Rotation
-    players[user.name].obj.rotation.x = user.rotation._x;
-    players[user.name].obj.rotation.y = user.rotation._y;
-    players[user.name].obj.rotation.z = user.rotation._z;
+    players[user.name].obj.name = user.name;
+    players[user.name].obj.position.copy(players[user.name].position);
+
     // Add to scene
     scene.add(players[user.name].obj);
+
+    // ///////
+    // LOG
+    // ///////
+    console.log("-------------------------------------------------");
+    console.log("PLAYER : " + players[user.name].name + " ADDED");
+    console.log(players[user.name].obj);
+    console.log(players[user.name].lastPos);
+    console.log("-------------------------------------------------");
+    // ///////
   }
 }
 
+
+// --------------------------------------------
+// INIT GAME WORLD WITH USERS
+// --------------------------------------------
+
+// ---------------------------
 // 1: INIT the current socket player
+// ---------------------------
 socket.on('initPlayer', function(){
+
   // Player
   players[socket.id] = {
     obj: new Player(),
     name: socket.id,
-    position: {},
-    rotation: {}
+    position: new THREE.Vector3(0, 0, 2.5),
+    rotation: new THREE.Vector3(0, 0, 0),
+    lastPos: null,
+    sequences: [],
   };
-  players[socket.id].name = socket.id;
+  players[socket.id].obj.name = players[socket.id].name;
+  players[socket.id].obj.position.copy(players[socket.id].position);
   scene.add(players[socket.id].obj);
+
+  // ///////
+  // LOG
+  // ///////
+  console.log("-------------------------------------------------");
+  console.log("CURRENT SOCKET PLAYER : " + socket.id + " ADDED");
+  console.log(players[socket.id].obj);
+  console.log(players[socket.id].lastPos);
+  console.log("-------------------------------------------------");
+  // ///////
+
+  // ---------------------------
   // 2: INIT users
   // Ask for all current users
+  // ---------------------------
   socket.emit('initUsers');
 });
 
+// ---------------------------
 // 2: INIT users
+// ---------------------------
 // Get the users and init an instance for all of them
 socket.on('initUsers', function(users){
   // Loop on users
   for (var user in users) {
     addPlayer(users[user]);
   }
+  // ---------------------------
   // 3: ADD current socket player to the users array on the server
+  // ---------------------------
   socket.emit('addUser', players[socket.id]);
 });
 
+// ---------------------------
 // 4: ADD new user
+// ---------------------------
 socket.on('newUser', function(user) {
+  console.log(user);
   addPlayer(user);
+});
+
+// ---------------------------
+// DELETE the disconnected player
+// ---------------------------
+socket.on('deletePlayer', function(id) {
+  scene.remove(players[id].obj);
+  console.log("PLAYER : " + id + " DELETED");
+  delete players[id];
+});
+
+
+
+// CONTROLS
+// --------------------------------------------
+
+// CAMERA
+function cameraPos(o,t) {
+  o.position.x = t.position.x;
+  o.position.y = t.position.y + -30;
+  camera.position.z = 35;
+  camera.lookAt(t.position);
+}
+
+// ROTATE
+function rotateObj(o,s,a,b) {
+  var n = (keys[a] ? s : 0) + (keys[b] ? -s : 0);
+  o.rotation.z += n;
+}
+
+// MOVE
+function moveObj(o,s,a,b) {
+  var n = (keys[a] ? a : 0) + (keys[b] ? b : 0);
+  if (keys[a] || keys[b]) {
+    socket.emit('movePlayer', o.name, n);
+  }
+}
+
+
+
+function movingObj(o,t,r,b,l) {
+  // IF an arrow key is down
+  if (keys[t] || keys[r] || keys[b] || keys[l]) {
+
+    // 1: SEND intended movement and associated sequences to the server
+    // we are not sending position to avoid cheater
+    var sequenceUUID = generateUUID();
+    socket.emit('movePlayer', o.name, keys, sequenceUUID);
+    o.sequences.push(sequenceUUID);
+
+    // 2: PREDICT the movement of the player during the server process
+    // normaly it's the same movement as the server will
+    var posX = 50 * 0.015;
+    var posY = 50 * 0.015;
+    posX = (keys[l] ? -posX : 0) + (keys[r] ? posX : 0);
+    posY = (keys[t] ? posY : 0) + (keys[b] ? -posY : 0);
+    o.obj.position.x += posX;
+    o.obj.position.y += posY;
+  }
+}
+
+
+
+// POSITIONS OF USERS
+// --------------------------------------------
+
+// SET the positions of the current socket players
+socket.on('movePlayer', function(name, position, sequence) {
+  if (sequence !== players[name].sequences[0]) {
+    players[name].obj.position.y = position.y;
+    players[name].obj.position.x = position.x;
+  }
+  // Clear the last sequence
+  players[name].sequences.shift();
 });
 
 // SET the positions of all current players
 socket.on('setPosition', function(users) {
   for (var user in users) {
     if (players[user] && user !== socket.id) {
-      players[user].obj.position.x = users[user].position.x;
-      players[user].obj.position.y = users[user].position.y;
-      players[user].obj.position.z = users[user].position.z;
-      players[user].obj.rotation.x = users[user].rotation._x;
-      players[user].obj.rotation.y = users[user].rotation._y;
-      players[user].obj.rotation.z = users[user].rotation._z;
+      if (players[user].lastPos !== users[user].position) {
+        players[user].obj.position.copy(users[user].position);
+      }
+      players[user].lastPos = users[user].position;
     }
   }
 });
 
-// DELETE the disconnected player
-socket.on('deletePlayer', function(id) {
-  scene.remove(players[id].obj);
-  delete players[id];
-});
 
 
 // ANIMATE ALL
@@ -271,14 +356,8 @@ function animate() {
   lastTime = now;
 
   if (players[socket.id] !== undefined) {
-    // Set current socket player obj position and rotation
-    players[socket.id].position = players[socket.id].obj.position;
-    players[socket.id].rotation = players[socket.id].obj.rotation;
-    // Send the position of the current socket player to all players
-    socket.emit('sendPosition', players[socket.id]);
-    // Control the current socket player
-    moveObj(players[socket.id].obj, 50 * deltaTime, 38, 40);
-    rotateObj(players[socket.id].obj, Math.PI * deltaTime, 37, 39);
+    // MOVING current socket player
+    movingObj(players[socket.id], 38, 39, 40, 37);
     // Camera follow the current socket player
     cameraPos(camera, players[socket.id].obj);
   }
