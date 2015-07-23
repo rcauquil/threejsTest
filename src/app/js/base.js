@@ -4,6 +4,7 @@
 // SOCKET IO
 var socket = io();
 // THREEJS
+var raycaster = new THREE.Raycaster();
 var scene, camera, renderer, effect;
 var controls;
 var ambientLight, directionalLight;
@@ -94,8 +95,15 @@ function init() {
   // OBJECTS
   // ---------------------
   // PLANE
-  var plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), new THREE.MeshNormalMaterial());
-  plane.overdraw = true;
+  var plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), new THREE.MeshPhongMaterial({
+    // light
+    specular: '#a9fcff',
+    // intermediate
+    color: '#00abb1',
+    // dark
+    emissive: '#006063',
+    shininess: 100
+  }));
   scene.add(plane);
 }
 
@@ -175,7 +183,20 @@ function addPlayer(user) {
       position: new THREE.Vector3(user.position.x, user.position.y, user.position.z),
       rotation: new THREE.Vector3(user.rotation._x, user.rotation._y, user.rotation._z),
       lastPos: null,
-      sequences: []
+      sequences: [],
+      // Set the rays : one vector for every potential direction
+      rays: [
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(1, 0, 1),
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(1, 0, -1),
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(-1, 0, -1),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(-1, 0, 1)
+      ],
+      // And the "RayCaster", able to test for intersections
+      caster: new THREE.Raycaster()
     };
     players[user.name].obj.name = user.name;
     players[user.name].obj.position.copy(players[user.name].position);
@@ -212,7 +233,20 @@ socket.on('initPlayer', function(){
     position: new THREE.Vector3(0, 0, 2.5),
     rotation: new THREE.Vector3(0, 0, 0),
     lastPos: null,
-    sequences: []
+    sequences: [],
+    // Set the rays : one vector for every potential direction
+    rays: [
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(1, 0, 1),
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(1, 0, -1),
+      new THREE.Vector3(0, 0, -1),
+      new THREE.Vector3(-1, 0, -1),
+      new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(-1, 0, 1)
+    ],
+    // And the "RayCaster", able to test for intersections
+    caster: new THREE.Raycaster()
   };
   players[socket.id].obj.name = players[socket.id].name;
   players[socket.id].obj.position.copy(players[socket.id].position);
@@ -299,6 +333,14 @@ function movingObj(o,t,r,b,l) {
     posY = (keys[t] ? posY : 0) + (keys[b] ? -posY : 0);
     o.obj.position.x += posX;
     o.obj.position.y += posY;
+
+    // Raycasting
+    var ray = new THREE.Vector3(0, 0, 0);
+    if (keys[t]) {
+      ray = new THREE.Vector3(1, 0, 0);
+    } else if (keys[b]) {
+      ray = new THREE.Vector3(-1, 0, 0);
+    }
   }
 }
 
@@ -342,11 +384,33 @@ function animate() {
   lastTime = now;
 
   if (players[socket.id] !== undefined) {
-    // MOVING current socket player
+
+    // MOVING
+    // ---------------------
+    // Moving the current socket player
     movingObj(players[socket.id], 38, 39, 40, 37);
+
+    // CAMERA
+    // ---------------------
     // Camera follow the current socket player
     cameraPos(camera, players[socket.id].obj);
+
+    // RAYCASTING
+    // ---------------------
+    // For the current socket player
+    // Set the raycast to the bottom
+    var rayBottom = new THREE.Vector3(0, 0, -1);
+    players[socket.id].caster.set(players[socket.id].obj.position, rayBottom);
+    // Check if the box is over the plane
+    var intersectPlane = players[socket.id].caster.intersectObject(scene.getObjectById(8));
+    if (intersectPlane.length > 0) {
+      scene.getObjectById(8).material.color.set( 0xff0000 );
+    } else {
+      scene.getObjectById(8).material.color.set( 0x00ff00 );
+    }
+
   }
+
   render(setView.vrMode);
 }
 
