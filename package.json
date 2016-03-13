@@ -1,36 +1,50 @@
 {
   "name": "threejsTest",
-  "description": "threejs test",
-  "version": "0.0.1",
+  "description": "threejs Test",
+  "version": "0.0.2",
   "author": {
     "name": "Romain CAUQUIL",
     "email": "romaincauquilrc@gmail.com"
   },
+  "engines": {
+    "node": "~4.3.1"
+  },
   "dependencies": {
     "express": "^4.10.2",
     "socket.io": "^1.3.6",
-    "socket.io-client": "^1.3.6"
-  },
-  "engines": {
-    "node": "~0.10"
+    "socket.io-client": "^1.3.6",
+    "three": "^0.71.1"
   },
   "devDependencies": {
-    "csswring": "^3.0.1",
-    "del": "^1.1.0",
-    "gulp": "^3.8.x",
-    "gulp-concat": "^2.5.0",
-    "gulp-ignore": "^1.2.0",
-    "gulp-jscs": "^1.1.0",
-    "gulp-jshint": "^1.9.2",
-    "gulp-less": "^3.0.0",
-    "gulp-minify-html": "^0.1.8",
-    "gulp-postcss": "^4.0.3",
-    "gulp-sourcemaps": "^1.2.8",
-    "gulp-uglify": "^1.1.0",
-    "gulp-util": "^3.0.x",
-    "jshint-stylish": "^1.0.0"
+    "concat-cli": "^4.0.0",
+    "eslint": "^2.0.0",
+    "less": "^2.6.0",
+    "less-plugin-clean-css": "^1.5.1",
+    "lesshat": "^3.0.2",
+    "onchange": "^2.0.0",
+    "parallelshell": "^2.0.0",
+    "uglify-js": "^2.6.1"
   },
   "scripts": {
-    "start": "node build/server.js"
+    "lesslint": "lessc --lint ./src/app/style/main.less",
+    "lessbuild": "lessc --source-map ./src/app/style/main.less --clean-css ./build/app/css/main.min.css",
+    "eslint": "eslint ./src/app/**/*.js",
+    "concatlibs": "concat-cli -f ./node_modules/socket.io-client/socket.io.js ./node_modules/three/three.min.js -o ./src/app/js/libs.js",
+    "uglifymain": "mkdir -p ./build/app/js && uglifyjs --screw-ie8 ./src/app/js/base.js -o ./build/app/js/main.min.js --source-map ./build/app/js/main.min.js.map",
+    "uglifyserver": "mkdir -p ./build/app && uglifyjs --screw-ie8 ./src/server.js -o ./build/server.min.js --source-map ./build/server.min.js.map",
+    "uglifylibs": "mkdir -p ./build/app/js && uglifyjs ./src/app/js/libs.js -o ./build/app/js/libs.min.js",
+    "build:less": "npm run lesslint && npm run lessbuild",
+    "build:mainjs": "npm run eslint && npm run uglifymain && npm run uglifyserver",
+    "build:libsjs": "npm run concatlibs && npm run uglifylibs",
+    "build:images": "cp -a ./src/app/assets/images ./build/app/img",
+    "build:html": "cp ./src/app/index.html ./build/app/index.html",
+    "build:ALL": "npm run build:less && npm run build:mainjs && npm run build:libsjs && npm run build:images && npm run build:html",
+    "watch:less": "onchange './src/app/style/**/*.less' -- npm run build:less",
+    "watch:js": "onchange './src/app/js/*.js' -- npm run build:mainjs",
+    "watch:ALL": "parallelshell 'npm run watch:less' 'npm run watch:js'",
+    "clean:dist": "rm -rf ./build",
+    "clean:deps": "sudo rm -rf ./node_modules",
+    "clean:ALL": "npm run clean:dist && npm run clean:deps",
+    "start": "node ./build/server.min.js"
   }
 }

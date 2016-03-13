@@ -1,8 +1,0 @@
-{
-  //"maximumLineLength": 120,
-  "validateIndentation": 2,
-  "disallowTrailingWhitespace": true,
-  "disallowTrailingComma": true,
-  "disallowMixedSpacesAndTabs": true,
-  "disallowSpacesInsideParentheses": true
-}

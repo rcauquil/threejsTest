@@ -5,14 +5,11 @@
 var socket = io();
 // THREEJS
 var raycaster = new THREE.Raycaster();
-var scene, camera, renderer, effect;
+var scene, camera, renderer;
 var controls;
 var ambientLight, directionalLight;
 var cube;
 var lastTime;
-var setView = {
-  vrMode: false
-};
 // PLAYERS
 var players = {};
 
@@ -40,24 +37,6 @@ function generateUUID() {
 
 
 // ------------------------------------------
-// CONTROL VIEW
-// ------------------------------------------
-var ctrlObj = {
-  rotation: 0.05,
-  speed: 0.6
-};
-
-window.onload = function() {
-  var gui = new dat.GUI();
-  // Speed rotation
-  //gui.add(ctrlObj, 'rotation').min(0).max(0.1).step(0.01);
-  //gui.add(ctrlObj, 'speed').min(0).max(1).step(0.1);
-  // View
-  gui.add(setView, 'vrMode');
-};
-
-
-// ------------------------------------------
 // INIT
 // ------------------------------------------
 function init() {
@@ -77,10 +56,6 @@ function init() {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-
-  // STEREOSCOPIC
-  // ---------------------
-  effect = new THREE.StereoEffect(renderer);
 
   // LIGHTS
   // ---------------------
@@ -113,16 +88,7 @@ function init() {
 // ------------------------------------------
 function setWindowSize() {
   camera.aspect = window.innerWidth / window.innerHeight;
-  switch(setView.vrMode) {
-    case false:
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      break;
-    case true:
-      effect.setSize(window.innerWidth, window.innerHeight);
-      break;
-    default:
-      renderer.setSize(window.innerWidth, window.innerHeight);
-  }
+  renderer.setSize(window.innerWidth, window.innerHeight);
   camera.updateProjectionMatrix();
 }
 
@@ -411,7 +377,7 @@ function animate() {
 
   }
 
-  render(setView.vrMode);
+  render();
 }
 
 
@@ -420,17 +386,8 @@ function animate() {
 // ------------------------------------------
 
 // RENDER
-function render(mode) {
-  switch(setView.vrMode) {
-    case false:
-      renderer.render(scene, camera);
-      break;
-    case true:
-      effect.render(scene, camera);
-      break;
-    default:
-      renderer.render(scene, camera);
-  }
+function render() {
+  renderer.render(scene, camera);
   setWindowSize();
 }
 
@@ -439,7 +396,7 @@ function render(mode) {
 // LAUNCH
 // ------------------------------------------
 init();
-render(setView.vrMode);
+render();
 animate();
 
 
@@ -447,4 +404,3 @@ animate();
 // STATS
 // ------------------------------------------
 (function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();stats.domElement.style.cssText='position:fixed;left:0;top:0;z-index:10000';document.body.appendChild(stats.domElement);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop);});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})();
-
