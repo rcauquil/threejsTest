@@ -1,7 +1,7 @@
 # threejsTest
 playing around with threejs
 
--- Work in progress --
+NOT SUPPORTED - CLOSED WORK
 
 Update : some issue due to packages version..
 
